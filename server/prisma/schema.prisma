@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum WashType {
+  MANUAL
+  AUTOMATIC
+  DETAILING
+  MULTI_SERVICE
+}
+
+enum CurrentSystem {
+  NOTEBOOK
+  WHATSAPP
+  EXCEL
+  EXISTING_SOFTWARE
+  NONE
+}
+
+enum Interest {
+  HOT
+  WARM
+  COLD
+  NOT_INTERESTED
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  DEMO_SCHEDULED
+  CONVERTED
+  LOST
+}
+
+model Lead {
+  id                 String        @id @default(uuid())
+  serialNo           Int           @unique @default(autoincrement())
+  businessName       String
+  contactName        String
+  mobile             String
+  whatsapp           String?
+  location           String
+  district           String
+  mapsLink           String?
+  washType           WashType
+  dailyVehicles      Int
+  currentSystem      CurrentSystem
+  remarks            String?
+  interest           Interest
+  followUpDate       DateTime?     @db.Date
+  followUpCompleted  Boolean       @default(false)
+  status             LeadStatus    @default(NEW)
+  collectedBy        String
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  followUps          FollowUpNote[]
+
+  @@index([district])
+  @@index([status])
+  @@index([interest])
+  @@index([followUpDate])
+  @@index([collectedBy])
+  @@index([createdAt])
+}
+
+model FollowUpNote {
+  id           String    @id @default(uuid())
+  leadId       String
+  lead         Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  note         String
+  outcome      String?
+  scheduledFor DateTime? @db.Date
+  completed    Boolean   @default(false)
+  createdBy    String?
+  createdAt    DateTime  @default(now())
+
+  @@index([leadId])
+}

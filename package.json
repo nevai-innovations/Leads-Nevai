@@ -1,0 +1,20 @@
+{
+  "name": "carwash-lead-collector",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Car Wash Lead Collector - market-survey lead capture and dashboard",
+  "scripts": {
+    "install:all": "npm install && npm --prefix server install && npm --prefix client install",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:migrate": "npm --prefix server run prisma:deploy",
+    "db:seed": "npm --prefix server run seed",
+    "setup": "npm run install:all && npm run db:up && npm run db:migrate && npm run db:seed",
+    "dev": "concurrently -n api,web -c cyan,magenta \"npm --prefix server run dev\" \"npm --prefix client run dev\"",
+    "build": "npm --prefix server run build && npm --prefix client run build",
+    "start": "npm --prefix server start"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.5"
+  }
+}
