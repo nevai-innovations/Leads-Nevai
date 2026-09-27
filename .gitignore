@@ -1,4 +1,12 @@
 node_modules
 dist
 .env
+.env.local
+.env*.local
 *.log
+.vercel
+
+# Local agent tooling installed by the Vercel/Neon CLI
+.agents/
+.claude/skills/
+skills-lock.json
