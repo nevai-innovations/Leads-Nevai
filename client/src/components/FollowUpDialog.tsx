@@ -42,7 +42,7 @@ export default function FollowUpDialog({
         markComplete,
         nextFollowUpDate: next || undefined,
         status: status !== lead.status ? status : undefined,
-        createdBy: localStorageGet('cwlc.collectedBy') || lead.collectedBy,
+        createdBy: localStorageGet('cwlc.collectedBy') || lead.collectedBy || undefined,
       });
       toast('success', markComplete ? 'Follow-up marked as completed' : 'Note added');
       onSaved();

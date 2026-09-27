@@ -41,21 +41,23 @@ dashboardRouter.get(
         }),
       ]);
 
-    const interestCount = Object.fromEntries(INTERESTS.map((i) => [i, 0])) as Record<string, number>;
-    for (const r of byInterestRaw) interestCount[r.interest] = r._count._all;
+    // Leads added via the quick form have no interest yet: count them as UNRATED.
+    const INTEREST_KEYS = [...INTERESTS, 'UNRATED'] as const;
+    const interestCount = Object.fromEntries(INTEREST_KEYS.map((i) => [i, 0])) as Record<string, number>;
+    for (const r of byInterestRaw) interestCount[r.interest ?? 'UNRATED'] = r._count._all;
     const statusCount = Object.fromEntries(STATUSES.map((s) => [s, 0])) as Record<string, number>;
     for (const r of byStatusRaw) statusCount[r.status] = r._count._all;
 
     // District breakdown, stacked by interest
-    type InterestCounts = { HOT: number; WARM: number; COLD: number; NOT_INTERESTED: number };
+    type InterestCounts = { HOT: number; WARM: number; COLD: number; NOT_INTERESTED: number; UNRATED: number };
     const districtMap = new Map<string, InterestCounts>();
     for (const r of byDistrictRaw) {
-      const row = districtMap.get(r.district) ?? { HOT: 0, WARM: 0, COLD: 0, NOT_INTERESTED: 0 };
-      row[r.interest] = r._count._all;
+      const row = districtMap.get(r.district) ?? { HOT: 0, WARM: 0, COLD: 0, NOT_INTERESTED: 0, UNRATED: 0 };
+      row[r.interest ?? 'UNRATED'] = r._count._all;
       districtMap.set(r.district, row);
     }
     const byDistrict = [...districtMap.entries()]
-      .map(([district, c]) => ({ district, ...c, total: c.HOT + c.WARM + c.COLD + c.NOT_INTERESTED }))
+      .map(([district, c]) => ({ district, ...c, total: c.HOT + c.WARM + c.COLD + c.NOT_INTERESTED + c.UNRATED }))
       .sort((a, b) => b.total - a.total || a.district.localeCompare(b.district));
 
     // Weekly leads over time (Mon-start weeks)
@@ -120,7 +122,7 @@ dashboardRouter.get(
         overdue,
         addedThisWeek,
       },
-      byInterest: INTERESTS.map((k) => ({ key: k, count: interestCount[k] })),
+      byInterest: INTEREST_KEYS.map((k) => ({ key: k, count: interestCount[k] })),
       byStatus: STATUSES.map((k) => ({ key: k, count: statusCount[k] })),
       byDistrict,
       overTime: weekly,

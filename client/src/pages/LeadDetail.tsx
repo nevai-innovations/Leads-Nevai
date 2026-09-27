@@ -93,10 +93,10 @@ export default function LeadDetail() {
                 '—'
               )}
             </Info>
-            <Info term="Car wash type">{label(lead.washType)}</Info>
-            <Info term="Est. daily vehicles">{lead.dailyVehicles}</Info>
-            <Info term="Current system">{label(lead.currentSystem)}</Info>
-            <Info term="Collected by">{lead.collectedBy}</Info>
+            <Info term="Car wash type">{label(lead.washType) || '—'}</Info>
+            <Info term="Est. daily vehicles">{lead.dailyVehicles ?? '—'}</Info>
+            <Info term="Current system">{label(lead.currentSystem) || '—'}</Info>
+            <Info term="Collected by">{lead.collectedBy || '—'}</Info>
             <Info term="Created">{fmtDateTime(lead.createdAt)}</Info>
             <Info term="Last updated">{fmtDateTime(lead.updatedAt)}</Info>
           </dl>

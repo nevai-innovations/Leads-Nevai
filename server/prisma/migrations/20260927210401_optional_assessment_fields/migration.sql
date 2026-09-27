@@ -1,0 +1,6 @@
+-- AlterTable
+ALTER TABLE "Lead" ALTER COLUMN "washType" DROP NOT NULL,
+ALTER COLUMN "dailyVehicles" DROP NOT NULL,
+ALTER COLUMN "currentSystem" DROP NOT NULL,
+ALTER COLUMN "interest" DROP NOT NULL,
+ALTER COLUMN "collectedBy" DROP NOT NULL;

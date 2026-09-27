@@ -7,14 +7,6 @@ import { ErrorState, Icon, Loading, PageHeader, useToast } from '../components/u
 
 const COLLECTOR_KEY = 'cwlc.collectedBy';
 
-function readCollector() {
-  try {
-    return localStorage.getItem(COLLECTOR_KEY) ?? '';
-  } catch {
-    return '';
-  }
-}
-
 const empty = (): LeadInput => ({
   businessName: '',
   contactName: '',
@@ -30,7 +22,7 @@ const empty = (): LeadInput => ({
   interest: '',
   followUpDate: '',
   status: 'NEW',
-  collectedBy: readCollector(),
+  collectedBy: '',
 });
 
 const MOBILE_RE = /^(?:\+?91|0)?([6-9]\d{9})$/;
@@ -47,15 +39,11 @@ function validate(v: LeadInput): Errors {
   req('contactName', 'Contact person');
   req('location', 'Location');
   req('district', 'District');
-  req('collectedBy', 'Collected by');
   if (!v.mobile.trim()) e.mobile = 'Mobile number is required';
   else if (!MOBILE_RE.test(cleanMobile(v.mobile))) e.mobile = 'Enter a valid 10-digit mobile number (starts with 6–9)';
   if (v.whatsapp.trim() && !MOBILE_RE.test(cleanMobile(v.whatsapp))) e.whatsapp = 'Enter a valid 10-digit WhatsApp number';
-  if (!v.washType) e.washType = 'Select a car wash type';
-  if (!v.currentSystem) e.currentSystem = 'Select the current system';
-  if (!v.interest) e.interest = 'Select probability of interest';
-  if (v.dailyVehicles === '') e.dailyVehicles = 'Estimated daily vehicles is required';
-  else if (!/^\d+$/.test(v.dailyVehicles) || Number(v.dailyVehicles) > 10000) e.dailyVehicles = 'Enter a whole number between 0 and 10000';
+  // Operations / opportunity fields are optional (filled in later on edit), but must be valid if given
+  if (v.dailyVehicles !== '' && (!/^\d+$/.test(v.dailyVehicles) || Number(v.dailyVehicles) > 10000)) e.dailyVehicles = 'Enter a whole number between 0 and 10000';
   return e;
 }
 
@@ -106,14 +94,14 @@ export default function LeadForm() {
           location: l.location,
           district: l.district,
           mapsLink: l.mapsLink ?? '',
-          washType: l.washType,
-          dailyVehicles: String(l.dailyVehicles),
-          currentSystem: l.currentSystem,
+          washType: l.washType ?? '',
+          dailyVehicles: l.dailyVehicles == null ? '' : String(l.dailyVehicles),
+          currentSystem: l.currentSystem ?? '',
           remarks: l.remarks ?? '',
-          interest: l.interest,
+          interest: l.interest ?? '',
           followUpDate: l.followUpDate ?? '',
           status: l.status,
-          collectedBy: l.collectedBy,
+          collectedBy: l.collectedBy ?? '',
         });
         setMeta({ serial: l.serial, createdAt: l.createdAt, updatedAt: l.updatedAt });
         setLoadState({ loading: false });
@@ -147,7 +135,7 @@ export default function LeadForm() {
     try {
       const lead = isEdit ? await api.updateLead(id!, values) : await api.createLead(values);
       try {
-        localStorage.setItem(COLLECTOR_KEY, values.collectedBy.trim());
+        if (values.collectedBy.trim()) localStorage.setItem(COLLECTOR_KEY, values.collectedBy.trim());
       } catch {
         /* storage unavailable */
       }
@@ -208,7 +196,7 @@ export default function LeadForm() {
               {meta.updatedAt && fmtDateTime(meta.updatedAt)}
             </>
           ) : (
-            'Record a car wash centre visit. Fields marked * are required.'
+            'Quick entry for a car wash visit. Fields marked * are required. Add wash type, interest, follow-up and map location later by editing the lead.'
           )
         }
       />
@@ -322,6 +310,7 @@ export default function LeadForm() {
                 {values.district && !KERALA_DISTRICTS.includes(values.district) && <option>{values.district}</option>}
               </select>
             </Field>
+            {isEdit && (
             <Field label="Google Maps link or coordinates" htmlFor="mapsLink" error={errors.mapsLink} wide>
               <div className="input-with-action">
                 <input
@@ -340,22 +329,25 @@ export default function LeadForm() {
                 </button>
               </div>
             </Field>
+            )}
           </div>
         </fieldset>
 
+        {/* Operations and Opportunity are filled in later, when the lead is edited */}
+        {isEdit && (
+        <>
         <fieldset className="card form-section">
           <legend>Operations</legend>
           <ChoiceGroup
             name="washType"
             legend="Type of car wash"
-            required
             options={WASH_TYPES}
             value={values.washType}
             onChange={(v) => set('washType', v)}
             error={errors.washType}
           />
           <div className="field-grid">
-            <Field label="Estimated daily vehicles" required htmlFor="dailyVehicles" error={errors.dailyVehicles}>
+            <Field label="Estimated daily vehicles" htmlFor="dailyVehicles" error={errors.dailyVehicles}>
               <input
                 id="dailyVehicles"
                 name="dailyVehicles"
@@ -374,7 +366,6 @@ export default function LeadForm() {
           <ChoiceGroup
             name="currentSystem"
             legend="Current system used"
-            required
             options={CURRENT_SYSTEMS}
             value={values.currentSystem}
             onChange={(v) => set('currentSystem', v)}
@@ -398,7 +389,6 @@ export default function LeadForm() {
           <ChoiceGroup
             name="interest"
             legend="Probability of interest"
-            required
             options={INTERESTS}
             value={values.interest}
             onChange={(v) => set('interest', v)}
@@ -441,7 +431,7 @@ export default function LeadForm() {
                 )}
               </div>
             </Field>
-            <Field label="Data collected by" required htmlFor="collectedBy" error={errors.collectedBy}>
+            <Field label="Data collected by" htmlFor="collectedBy" error={errors.collectedBy}>
               <input
                 id="collectedBy"
                 name="collectedBy"
@@ -461,6 +451,8 @@ export default function LeadForm() {
             </Field>
           </div>
         </fieldset>
+        </>
+        )}
 
         <div className="form-actions">
           <Link to={isEdit ? `/leads/${id}` : '/leads'} className="btn btn-secondary">

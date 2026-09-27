@@ -27,6 +27,9 @@ const AXIS = '#6b7280';
 // Ordinal teal ramp for the funnel (light → dark, lightest still clears 2:1 on white)
 const FUNNEL = ['#5eb8ae', '#2a9d8f', '#1b7f74', '#0f5f57'];
 
+// District bars stack real ratings first, then leads not yet rated
+const DISTRICT_KEYS = [...INTERESTS, 'UNRATED'] as const;
+
 const axisProps = { stroke: AXIS, fontSize: 12, tickLine: false, axisLine: { stroke: '#d1d5db' } } as const;
 
 function ChartTooltip({ active, payload, label: l, labelFormatter }: { active?: boolean; payload?: { name?: string; value?: number; color?: string; payload?: { fill?: string } }[]; label?: string | number; labelFormatter?: (l: string | number) => string }) {
@@ -171,8 +174,8 @@ function DashboardBody({ d }: { d: DashboardData }) {
           subtitle="Stacked by interest level"
           wide
           table={{
-            head: ['District', ...INTERESTS.map(label), 'Total'],
-            rows: districtData.map((r) => [r.district, r.HOT, r.WARM, r.COLD, r.NOT_INTERESTED, r.total]),
+            head: ['District', ...DISTRICT_KEYS.map(label), 'Total'],
+            rows: districtData.map((r) => [r.district, r.HOT, r.WARM, r.COLD, r.NOT_INTERESTED, r.UNRATED, r.total]),
           }}
         >
           <ResponsiveContainer width="100%" height={Math.max(260, districtData.length * 30 + 60)}>
@@ -182,7 +185,7 @@ function DashboardBody({ d }: { d: DashboardData }) {
               <YAxis type="category" dataKey="name" {...axisProps} width={118} tick={{ fontSize: 12 }} />
               <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(15,118,110,0.06)' }} />
               <Legend iconType="circle" iconSize={10} wrapperStyle={{ fontSize: 12 }} />
-              {INTERESTS.map((i, idx) => (
+              {DISTRICT_KEYS.map((i, idx) => (
                 <Bar
                   isAnimationActive={false}
                   key={i}
@@ -192,7 +195,7 @@ function DashboardBody({ d }: { d: DashboardData }) {
                   fill={INTEREST_COLORS[i]}
                   stroke="#fff"
                   strokeWidth={1}
-                  radius={idx === INTERESTS.length - 1 ? [0, 4, 4, 0] : 0}
+                  radius={idx === DISTRICT_KEYS.length - 1 ? [0, 4, 4, 0] : 0}
                 />
               ))}
             </BarChart>

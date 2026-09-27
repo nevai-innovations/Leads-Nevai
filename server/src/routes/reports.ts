@@ -18,12 +18,13 @@ reportsRouter.get(
 
     const collectors = new Map<string, { collector: string; total: number; converted: number; demo: number; lost: number }>();
     for (const r of byCollectorRaw) {
-      const row = collectors.get(r.collectedBy) ?? { collector: r.collectedBy, total: 0, converted: 0, demo: 0, lost: 0 };
+      const name = r.collectedBy ?? 'Not recorded';
+      const row = collectors.get(name) ?? { collector: name, total: 0, converted: 0, demo: 0, lost: 0 };
       row.total += r._count._all;
       if (r.status === 'CONVERTED') row.converted += r._count._all;
       if (r.status === 'DEMO_SCHEDULED') row.demo += r._count._all;
       if (r.status === 'LOST') row.lost += r._count._all;
-      collectors.set(r.collectedBy, row);
+      collectors.set(name, row);
     }
 
     const systems = CURRENT_SYSTEMS.map((s) => {

@@ -50,15 +50,15 @@ model Lead {
   location           String
   district           String
   mapsLink           String?
-  washType           WashType
-  dailyVehicles      Int
-  currentSystem      CurrentSystem
+  washType           WashType?
+  dailyVehicles      Int?
+  currentSystem      CurrentSystem?
   remarks            String?
-  interest           Interest
+  interest           Interest?
   followUpDate       DateTime?     @db.Date
   followUpCompleted  Boolean       @default(false)
   status             LeadStatus    @default(NEW)
-  collectedBy        String
+  collectedBy        String?
   createdAt          DateTime      @default(now())
   updatedAt          DateTime      @updatedAt
   followUps          FollowUpNote[]

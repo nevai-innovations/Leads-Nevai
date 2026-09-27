@@ -39,7 +39,13 @@ function buildWhere(q: LeadQuery): Prisma.LeadWhereInput {
     if (serial) or.push({ serialNo: Number(serial[1]) });
     and.push({ OR: or });
   }
-  if (q.interest.length) and.push({ interest: { in: q.interest } });
+  if (q.interest.length) {
+    const rated = q.interest.filter((i): i is Exclude<typeof i, 'UNRATED'> => i !== 'UNRATED');
+    const or: Prisma.LeadWhereInput[] = [];
+    if (rated.length) or.push({ interest: { in: rated } });
+    if (q.interest.includes('UNRATED')) or.push({ interest: null });
+    and.push({ OR: or });
+  }
   if (q.status.length) and.push({ status: { in: q.status } });
   if (q.district) and.push({ district: { equals: q.district, mode: 'insensitive' } });
   if (q.collectedBy) and.push({ collectedBy: { equals: q.collectedBy, mode: 'insensitive' } });
@@ -77,7 +83,7 @@ function buildOrder(sort: LeadQuery['sort']): Prisma.LeadOrderByWithRelationInpu
       return [{ followUpDate: { sort: 'asc', nulls: 'last' } }, { createdAt: 'desc' }];
     case 'interest':
       // Postgres enum order: HOT, WARM, COLD, NOT_INTERESTED
-      return [{ interest: 'asc' }, { followUpDate: { sort: 'asc', nulls: 'last' } }];
+      return [{ interest: { sort: 'asc', nulls: 'last' } }, { followUpDate: { sort: 'asc', nulls: 'last' } }];
     case 'serial':
       return [{ serialNo: 'asc' }];
     default:
@@ -125,14 +131,14 @@ const EXPORT_COLUMNS: { header: string; key: string; width: number; get: (l: Lea
   { header: 'Location', key: 'location', width: 18, get: (l) => l.location },
   { header: 'District', key: 'district', width: 18, get: (l) => l.district },
   { header: 'Maps', key: 'mapsLink', width: 30, get: (l) => l.mapsLink ?? '' },
-  { header: 'Wash Type', key: 'washType', width: 14, get: (l) => LABELS[l.washType] },
-  { header: 'Daily Vehicles', key: 'dailyVehicles', width: 12, get: (l) => l.dailyVehicles },
-  { header: 'Current System', key: 'currentSystem', width: 18, get: (l) => LABELS[l.currentSystem] },
-  { header: 'Interest', key: 'interest', width: 14, get: (l) => LABELS[l.interest] },
+  { header: 'Wash Type', key: 'washType', width: 14, get: (l) => (l.washType ? LABELS[l.washType] : '') },
+  { header: 'Daily Vehicles', key: 'dailyVehicles', width: 12, get: (l) => l.dailyVehicles ?? '' },
+  { header: 'Current System', key: 'currentSystem', width: 18, get: (l) => (l.currentSystem ? LABELS[l.currentSystem] : '') },
+  { header: 'Interest', key: 'interest', width: 14, get: (l) => (l.interest ? LABELS[l.interest] : '') },
   { header: 'Status', key: 'status', width: 16, get: (l) => LABELS[l.status] },
   { header: 'Follow-up Date', key: 'followUpDate', width: 14, get: (l) => toISODate(l.followUpDate) ?? '' },
   { header: 'Follow-up Done', key: 'followUpCompleted', width: 12, get: (l) => (l.followUpCompleted ? 'Yes' : 'No') },
-  { header: 'Collected By', key: 'collectedBy', width: 16, get: (l) => l.collectedBy },
+  { header: 'Collected By', key: 'collectedBy', width: 16, get: (l) => l.collectedBy ?? '' },
   { header: 'Pain Points / Remarks', key: 'remarks', width: 50, get: (l) => l.remarks ?? '' },
   { header: 'Created', key: 'createdAt', width: 20, get: (l) => l.createdAt.toISOString() },
   { header: 'Last Updated', key: 'updatedAt', width: 20, get: (l) => l.updatedAt.toISOString() },

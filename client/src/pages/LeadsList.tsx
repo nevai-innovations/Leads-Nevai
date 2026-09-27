@@ -146,6 +146,7 @@ export default function LeadsList() {
                 {label(i)}
               </option>
             ))}
+            <option value="UNRATED">Not rated</option>
             <option value="HOT,WARM">Hot + Warm</option>
           </FilterSelect>
           <FilterSelect id="f-status" label="Status" value={filters.status} onChange={(v) => update({ status: v })}>
@@ -248,7 +249,7 @@ export default function LeadsList() {
                     <td className="nowrap">
                       <FollowUpCell lead={l} />
                     </td>
-                    <td>{l.collectedBy}</td>
+                    <td>{l.collectedBy || <span className="muted">—</span>}</td>
                     <td className="row-actions" onClick={(e) => e.stopPropagation()}>
                       <Link to={`/leads/${l.id}/edit`} className="icon-btn" aria-label={`Edit ${l.businessName}`} title="Edit">
                         <Icon name="edit" size={16} />

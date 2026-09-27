@@ -89,7 +89,8 @@ function FuSection({
                     {l.businessName}
                   </Link>
                   <span className="muted small">
-                    {l.contactName} · {l.location}, {l.district} · {l.collectedBy}
+                    {l.contactName} · {l.location}, {l.district}
+                    {l.collectedBy && <> · {l.collectedBy}</>}
                   </span>
                   <div className="badges">
                     <InterestBadge value={l.interest} />

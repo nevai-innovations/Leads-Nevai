@@ -22,6 +22,7 @@ export const LABELS: Record<string, string> = {
   WARM: 'Warm',
   COLD: 'Cold',
   NOT_INTERESTED: 'Not interested',
+  UNRATED: 'Not rated',
   NEW: 'New',
   CONTACTED: 'Contacted',
   DEMO_SCHEDULED: 'Demo scheduled',
@@ -32,11 +33,13 @@ export const LABELS: Record<string, string> = {
 export const label = (k: string | null | undefined) => (k ? LABELS[k] ?? k : '');
 
 /** Validated categorical palette for interest (gray = intentionally neutral "not interested"). */
-export const INTEREST_COLORS: Record<Interest, string> = {
+export const INTEREST_COLORS: Record<Interest | 'UNRATED', string> = {
   HOT: '#d9433f',
   WARM: '#eda100',
   COLD: '#2a78d6',
   NOT_INTERESTED: '#8a8f98',
+  // Not yet assessed (added via the quick form): light neutral so it recedes behind real ratings
+  UNRATED: '#cbd5e1',
 };
 
 export const KERALA_DISTRICTS = [

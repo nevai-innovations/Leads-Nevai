@@ -35,7 +35,7 @@ app.get(
       prisma.lead.findMany({ distinct: ['district'], select: { district: true }, orderBy: { district: 'asc' } }),
       prisma.lead.findMany({ distinct: ['collectedBy'], select: { collectedBy: true }, orderBy: { collectedBy: 'asc' } }),
     ]);
-    res.json({ districts: districts.map((d) => d.district), collectors: collectors.map((c) => c.collectedBy) });
+    res.json({ districts: districts.map((d) => d.district), collectors: collectors.map((c) => c.collectedBy).filter(Boolean) });
   }),
 );
 

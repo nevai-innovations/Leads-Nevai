@@ -48,7 +48,8 @@ export function Icon({ name, size = 18, className }: { name: keyof typeof PATHS 
 }
 
 /* ---------- Badges ---------- */
-export function InterestBadge({ value }: { value: Interest }) {
+export function InterestBadge({ value }: { value: Interest | null }) {
+  if (!value) return <span className="badge interest-unrated">Not rated</span>;
   return (
     <span className={`badge interest-${value.toLowerCase()}`}>
       <span className="dot" style={{ background: INTEREST_COLORS[value] }} aria-hidden="true" />

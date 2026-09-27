@@ -90,6 +90,10 @@ const mapsLink = z
     { message: 'Enter a Google Maps URL or coordinates like 9.9816,76.2780' },
   );
 
+/** Optional enum: '' / null / missing all mean 'not set'. */
+const optionalEnum = <T extends readonly [string, ...string[]]>(values: T, message: string) =>
+  z.preprocess((v) => (v === '' || v === undefined ? null : v), z.enum(values, { errorMap: () => ({ message }) }).nullable());
+
 export const leadInputSchema = z.object({
   businessName: requiredText('Business name'),
   contactName: requiredText('Contact person'),
@@ -98,18 +102,17 @@ export const leadInputSchema = z.object({
   location: requiredText('Location'),
   district: requiredText('District', 60),
   mapsLink,
-  washType: z.enum(WASH_TYPES, { errorMap: () => ({ message: 'Select a car wash type' }) }),
-  dailyVehicles: z.coerce
-    .number({ invalid_type_error: 'Enter a number' })
-    .int('Enter a whole number')
-    .min(0, 'Cannot be negative')
-    .max(10000, 'That seems too high'),
-  currentSystem: z.enum(CURRENT_SYSTEMS, { errorMap: () => ({ message: 'Select the current system' }) }),
+  // Assessment fields are optional: the quick Add form skips them; they are filled in on edit.
+  washType: optionalEnum(WASH_TYPES, 'Select a car wash type'),
+  dailyVehicles: z
+    .union([z.literal(''), z.null(), z.undefined(), z.coerce.number({ invalid_type_error: 'Enter a number' }).int('Enter a whole number').min(0, 'Cannot be negative').max(10000, 'That seems too high')])
+    .transform((v) => (v === '' || v === undefined ? null : v)),
+  currentSystem: optionalEnum(CURRENT_SYSTEMS, 'Select the current system'),
   remarks: optionalText(2000),
-  interest: z.enum(INTERESTS, { errorMap: () => ({ message: 'Select probability of interest' }) }),
+  interest: optionalEnum(INTERESTS, 'Select probability of interest'),
   followUpDate: optionalDate,
   status: z.enum(STATUSES, { errorMap: () => ({ message: 'Select a lead status' }) }).default('NEW'),
-  collectedBy: requiredText('Collected by', 80),
+  collectedBy: optionalText(80),
 });
 
 export type LeadInput = z.infer<typeof leadInputSchema>;
@@ -123,7 +126,7 @@ const csvEnum = <T extends readonly [string, ...string[]]>(values: T) =>
 
 export const leadQuerySchema = z.object({
   q: z.string().trim().max(100).optional(),
-  interest: csvEnum(INTERESTS),
+  interest: csvEnum([...INTERESTS, 'UNRATED'] as const), // UNRATED = interest not set yet
   status: csvEnum(STATUSES),
   district: z.string().trim().max(60).optional(),
   collectedBy: z.string().trim().max(80).optional(),

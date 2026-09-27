@@ -11,15 +11,15 @@ export interface Lead {
   location: string;
   district: string;
   mapsLink: string | null;
-  washType: WashType;
-  dailyVehicles: number;
-  currentSystem: CurrentSystem;
+  washType: WashType | null;
+  dailyVehicles: number | null;
+  currentSystem: CurrentSystem | null;
   remarks: string | null;
-  interest: Interest;
+  interest: Interest | null;
   followUpDate: string | null;
   followUpCompleted: boolean;
   status: LeadStatus;
-  collectedBy: string;
+  collectedBy: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -78,9 +78,9 @@ export interface DashboardData {
     overdue: number;
     addedThisWeek: number;
   };
-  byInterest: { key: Interest; count: number }[];
+  byInterest: { key: Interest | 'UNRATED'; count: number }[];
   byStatus: { key: LeadStatus; count: number }[];
-  byDistrict: { district: string; HOT: number; WARM: number; COLD: number; NOT_INTERESTED: number; total: number }[];
+  byDistrict: { district: string; HOT: number; WARM: number; COLD: number; NOT_INTERESTED: number; UNRATED: number; total: number }[];
   overTime: { weekStart: string; count: number }[];
   funnel: { stage: string; count: number }[];
   followUpsThisWeek: { days: { date: string; count: number }[]; leads: Lead[] };
