@@ -4,7 +4,7 @@ A mobile-first web app for collecting market-survey leads from car-wash centres,
 
 - **Frontend:** React 19 + TypeScript (Vite), React Router, Recharts
 - **Backend:** Node.js + Express + TypeScript, Zod validation, Helmet, rate limiting
-- **Database:** PostgreSQL 16 + Prisma (migrations + seed script)
+- **Database:** PostgreSQL 16 + Prisma (migrations)
 
 ## Features
 
@@ -24,11 +24,11 @@ A mobile-first web app for collecting market-survey leads from car-wash centres,
 ## Quick start
 
 ```bash
-npm run setup     # installs all deps, starts Postgres in Docker, runs migrations, seeds 32 Kerala leads
+npm run setup     # installs all deps, starts Postgres in Docker, runs migrations
 npm run dev       # API on http://localhost:4000, web app on http://localhost:5173
 ```
 
-Open **http://localhost:5173** — it opens straight into the dashboard.
+Open **http://localhost:5173** — it opens straight into the dashboard. The database starts empty; charts fill in as you add leads.
 
 ### Step by step (what `setup` does)
 
@@ -37,7 +37,6 @@ npm install && npm --prefix server install && npm --prefix client install
 docker compose up -d                          # Postgres on localhost:5433 (user/pass/db: carwash/carwash/carwash_leads)
 cp server/.env.example server/.env            # already present; edit if you use your own Postgres
 npm --prefix server run prisma:deploy         # apply migrations
-npm --prefix server run seed                  # load sample data
 ```
 
 ### Using your own PostgreSQL
@@ -48,15 +47,15 @@ Set `DATABASE_URL` in `server/.env`, e.g.
 DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/carwash_leads?schema=public"
 ```
 
-then run `npm run db:migrate && npm run db:seed`.
+then run `npm run db:migrate`.
 
 ## Useful scripts
 
 | Command | Description |
 | --- | --- |
 | `npm run dev` | Run API (tsx watch) and web app (Vite) together |
-| `npm run db:seed` | Reset leads and reload the sample data (dates are relative to today, so "due today"/"overdue" always have data) |
-| `npm --prefix server run db:reset` | Drop, re-migrate and re-seed the database |
+| `npm run db:clear` | **Delete all leads and follow-up history** and restart serial numbers at CW-0001 |
+| `npm --prefix server run db:reset` | Drop and re-create the database schema (empty) |
 | `npm --prefix server run prisma:migrate` | Create a new migration after editing `schema.prisma` |
 | `npm run build` | Type-check and build API and client |
 | `npm start` | Run the built API; it also serves the built client from `client/dist` on port 4000 |
@@ -65,7 +64,8 @@ then run `npm run db:migrate && npm run db:seed`.
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `DATABASE_URL` | local Docker DB | PostgreSQL connection string |
+| `DATABASE_URL` | local Docker DB | PostgreSQL connection string (pooled on Neon) |
+| `DATABASE_URL_UNPOOLED` | same as above | Direct connection used by Prisma migrations |
 | `PORT` | `4000` | API port |
 | `CORS_ORIGIN` | `http://localhost:5173` | Comma-separated allowed origins |
 | `APP_TIMEZONE` | `Asia/Kolkata` | Timezone used to decide "today" for follow-ups and "this week" |
@@ -88,6 +88,16 @@ then run `npm run db:migrate && npm run db:seed`.
 
 Validation errors return `400 { error, fieldErrors: { field: message } }`, which the form maps onto the matching inputs.
 
+## Deploying to Vercel
+
+The repo deploys as one Vercel project: the React app is served as static files and `/api/*` runs the Express app as a serverless function (`api/index.ts`).
+
+1. Import the GitHub repo in Vercel (no framework preset; `vercel.json` sets install/build/output).
+2. Add a Postgres database — e.g. **Storage → Neon** — which sets `DATABASE_URL` (pooled) and `DATABASE_URL_UNPOOLED` (used for migrations).
+3. Deploy. The build runs `prisma generate && prisma migrate deploy`, so schema changes apply automatically.
+
+Optional env var: `APP_TIMEZONE` (defaults to `Asia/Kolkata`).
+
 ## Security notes
 
 - All request bodies, query strings and route params are validated with Zod; unknown enum values and malformed IDs are rejected.
@@ -101,11 +111,13 @@ Validation errors return `400 { error, fieldErrors: { field: message } }`, which
 
 ```
 ├── docker-compose.yml        Postgres for local dev
+├── vercel.json               Vercel build + routing
+├── api/index.ts              Vercel serverless entry (wraps the Express app)
 ├── server/
 │   ├── prisma/
 │   │   ├── schema.prisma     Lead + FollowUpNote models
 │   │   ├── migrations/       SQL migrations
-│   │   └── seed.ts           32 sample car-wash centres across all 14 Kerala districts
+│   │   └── clear.ts          deletes all leads (used by `npm run db:clear`)
 │   └── src/
 │       ├── index.ts          Express app
 │       ├── lib/              validation, dates, error handling
@@ -116,5 +128,3 @@ Validation errors return `400 { error, fieldErrors: { field: message } }`, which
         ├── pages/            Dashboard, LeadForm, LeadsList, LeadDetail, FollowUps, Reports
         └── lib/              API client, constants, formatting
 ```
-
-The sample businesses, people and phone numbers in the seed data are fictional.

@@ -11,12 +11,9 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
     "prisma:generate": "prisma generate",
-    "seed": "tsx prisma/seed.ts",
-    "db:reset": "prisma migrate reset --force",
-    "vercel-build": "prisma generate && prisma migrate deploy"
-  },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
+    "db:reset": "prisma migrate reset --force --skip-seed",
+    "vercel-build": "prisma generate && prisma migrate deploy",
+    "db:clear": "tsx prisma/clear.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",

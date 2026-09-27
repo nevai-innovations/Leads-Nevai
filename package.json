@@ -8,11 +8,11 @@
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
     "db:migrate": "npm --prefix server run prisma:deploy",
-    "db:seed": "npm --prefix server run seed",
-    "setup": "npm run install:all && npm run db:up && npm run db:migrate && npm run db:seed",
+    "setup": "npm run install:all && npm run db:up && npm run db:migrate",
     "dev": "concurrently -n api,web -c cyan,magenta \"npm --prefix server run dev\" \"npm --prefix client run dev\"",
     "build": "npm --prefix server run build && npm --prefix client run build",
-    "start": "npm --prefix server start"
+    "start": "npm --prefix server start",
+    "db:clear": "npm --prefix server run db:clear"
   },
   "devDependencies": {
     "concurrently": "^10.0.5"
