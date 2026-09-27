@@ -1,0 +1,13 @@
+{
+  // Used by Vercel when compiling the serverless function (api/index.ts -> server/src).
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "noEmit": true
+  },
+  "include": ["api", "server/src"]
+}
